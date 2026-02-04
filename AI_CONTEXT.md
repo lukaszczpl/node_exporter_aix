@@ -10,8 +10,7 @@ It is written in C++ (C++17) and uses the native `libperfstat` library on AIX.
 - **Compiler**: GCC (g++) from AIX Toolbox
 - **Libraries**:
   - `libperfstat`: AIX standard library for performance statistics.
-  - `asio` (Standalone): For networking and async I/O.
-  - `Simple-Web-Server`: Embedded HTTP server.
+  - `CivetWeb`: Embedded C/C++ web server (submodule).
 
 ### Directory Structure
 - `data_sources/`: Definitions for metric sources.
