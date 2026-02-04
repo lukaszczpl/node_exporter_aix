@@ -4,11 +4,12 @@
 
 # Compiler Configuration
 # Recommended: g++ 9.x or newer for full C++17 support
-# Override with: make CXX=/path/to/your/g++
-CXX ?= g++
-CC ?= gcc
+# Force gcc/g++ usage (override Make's default cc)
+# To use different compiler: make CXX=/path/to/compiler CC=/path/to/gcc
+CXX = g++
+CC = gcc
 # C compilation flags for civetweb (AIX compatibility)
-CFLAGS = -D_LINUX_SOURCE_COMPAT
+CFLAGS = -D_LINUX_SOURCE_COMPAT -DNEED_TIMEGM
 
 # Debug Configuration
 # Set DEBUG=1 for debug build: make DEBUG=1

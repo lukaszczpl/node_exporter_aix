@@ -3,16 +3,22 @@
 ## Problem 1: `cc: A file or directory in the path name does not exist`
 
 ### Przyczyna
-Zmienna `CC` nie jest poprawnie ustawiona lub `cc` nie jest w PATH.
+Make ma wbudowaną domyślną zmienną `CC = cc`. Gdy użyjesz `CC ?= gcc`, operator `?=` (conditional assignment) nie nadpisuje już istniejącej wartości `cc`.
 
 ### Rozwiązanie
-W Makefile ustawiono `CC ?= gcc`:
+W Makefile ustawiono `CC = gcc` (zamiast `CC ?= gcc`):
 
 ```makefile
-CC ?= gcc
+# Wymuszenie gcc (nadpisanie domyślnego 'cc' w Make)
+CXX = g++
+CC = gcc
 ```
 
-Można też nadpisać podczas kompilacji:
+**Wyjaśnienie operatorów Make:**
+- `CC ?= gcc` - ustaw CC na gcc **tylko jeśli** CC nie jest już ustawione (nie działa, bo Make ma `CC = cc`)
+- `CC = gcc` - **wymuś** CC na gcc, nadpisując domyślną wartość
+
+Nadal można nadpisać podczas kompilacji:
 ```bash
 make CC=/opt/freeware/bin/gcc
 ```
@@ -31,12 +37,12 @@ ld: 0711-317 ERROR: Undefined symbol: .timegm
 ```
 
 ### Rozwiązanie
-AIX dostarcza kompatybilność z funkcjami GNU/Linux przez flagę `-D_LINUX_SOURCE_COMPAT`.
+AIX dostarcza kompatybilność z funkcjami GNU/Linux przez flagi `-D_LINUX_SOURCE_COMPAT` i `-DNEED_TIMEGM`.
 
 **W Makefile dodano:**
 ```makefile
 # C compilation flags for civetweb (AIX compatibility)
-CFLAGS = -D_LINUX_SOURCE_COMPAT
+CFLAGS = -D_LINUX_SOURCE_COMPAT -DNEED_TIMEGM
 ```
 
 **I zaktualizowano kompilację civetweb:**
@@ -45,8 +51,11 @@ build/civetweb.o: civetweb/src/civetweb.c
 	$(CC) $(CFLAGS) -I civetweb/include -DNO_SSL -DNO_FILES -c -o build/civetweb.o civetweb/src/civetweb.c
 ```
 
-### Co robi `-D_LINUX_SOURCE_COMPAT`?
-Ta flaga włącza w AIX:
+### Co robią te flagi?
+- **`-D_LINUX_SOURCE_COMPAT`**: Włącza kompatybilność z funkcjami GNU/Linux w AIX
+- **`-DNEED_TIMEGM`**: Jawnie włącza funkcję `timegm()` w niektórych wersjach biblioteki AIX
+
+Te flagi włączają w AIX:
 - Kompatybilność z funkcjami GNU/Linux
 - Dostęp do funkcji jak `timegm()`, `strptime()` z GNU semantyką
 - Dodatkowe POSIX rozszerzenia
@@ -95,11 +104,11 @@ yum install ksh
 ```
 
 ### Problem: Nadal `timegm undefined`
-Upewnij się że CFLAGS zawiera `-D_LINUX_SOURCE_COMPAT`:
+Upewnij się że CFLAGS zawiera obie flagi:
 ```bash
 # W Makefile sprawdź linijkę:
-grep "_LINUX_SOURCE_COMPAT" Makefile
-# Powinno pokazać: CFLAGS = -D_LINUX_SOURCE_COMPAT
+grep "CFLAGS" Makefile | grep -v "^#"
+# Powinno pokazać: CFLAGS = -D_LINUX_SOURCE_COMPAT -DNEED_TIMEGM
 ```
 
 ---
@@ -113,7 +122,7 @@ CXXFLAGS = -Wall -Werror -fmax-errors=5 -fconcepts -std=c++17 -pthread
 
 ### Dla C (CFLAGS) - CivetWeb
 ```makefile
-CFLAGS = -D_LINUX_SOURCE_COMPAT
+CFLAGS = -D_LINUX_SOURCE_COMPAT -DNEED_TIMEGM
 ```
 
 ### Linkowanie (LDFLAGS)
