@@ -57,7 +57,7 @@ Please note, the service is overwritten on with the .bff package.
 
 Prerequisites:
 
-* AIX 7.1 (older may work, not tested)
+* AIX 7.2 (older may work, not tested)
 * GCC C++17 compatible compiler (AIX Toolbox)
 * GNU Make (AIX Toolbox)
 
