@@ -7,6 +7,8 @@
 # Override with: make CXX=/path/to/your/g++
 CXX ?= g++
 CC ?= gcc
+# C compilation flags for civetweb (AIX compatibility)
+CFLAGS = -D_LINUX_SOURCE_COMPAT
 
 # Compilation Flags
 CXXFLAGS = -Wall -Werror -fmax-errors=5 -fconcepts -std=c++17 -pthread
@@ -43,7 +45,7 @@ build/collectors.o: collectors.cpp generated/diskpaths.cpp generated/diskadapter
 	$(CXX) $(CXXFLAGS) -lperfstat -c -o build/collectors.o collectors.cpp
 
 build/civetweb.o: civetweb/src/civetweb.c
-	$(CC) -I civetweb/include -DNO_SSL -DNO_FILES -c -o build/civetweb.o civetweb/src/civetweb.c
+	$(CC) $(CFLAGS) -I civetweb/include -DNO_SSL -DNO_FILES -c -o build/civetweb.o civetweb/src/civetweb.c
 
 generated/%s.cpp: data_sources/%.multiple scripts/generate_multiple.ksh templates/generate_multiple.template
 	ksh scripts/generate_multiple.ksh $* generated/$*s.cpp
