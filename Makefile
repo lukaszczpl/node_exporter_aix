@@ -16,25 +16,27 @@ CFLAGS = -D_LINUX_SOURCE_COMPAT -DNEED_TIMEGM
 # Debug build includes symbols (-g) and disables optimization (-O0)
 DEBUG ?= 0
 ifeq ($(DEBUG),1)
-    CXXFLAGS = -g -O0 -Wall -fmax-errors=5 -fconcepts -std=c++17 -pthread
+    CXXFLAGS = -g -O0 -Wall -fmax-errors=5 -fconcepts -std=c++17
     CFLAGS += -g -O0
-    LDFLAGS_DEBUG = -pthread -lperfstat  # Dynamic linking for easier debugging
+    LDFLAGS_DEBUG = -lpthread -lperfstat  # Fully dynamic for debugging
 else
-    CXXFLAGS = -Wall -Werror -fmax-errors=5 -fconcepts -std=c++17 -pthread
+    CXXFLAGS = -Wall -Werror -fmax-errors=5 -fconcepts -std=c++17
 endif
 
 # Linking Flags - Static Build (default for production)
-# This creates a standalone binary with no GNU library dependencies
-# Only AIX system libraries (libperfstat, libc, etc.) are dynamically linked
-# Benefits: Deploy to any AIX system without installing g++/libstdc++
+# AIX CRITICAL: pthread MUST be dynamic (static causes coredump!)
+# Strategy: Use AIX linker flags to control static/dynamic per library
+# -Wl,-bstatic = following libs are static
+# -Wl,-bdynamic = following libs are dynamic
 ifeq ($(DEBUG),1)
     LDFLAGS = $(LDFLAGS_DEBUG)
 else
-    LDFLAGS = -pthread -static-libgcc -static-libstdc++ -lperfstat
+    # Static libstdc++/libgcc, then switch to dynamic for pthread and system libs
+    LDFLAGS = -static-libgcc -static-libstdc++ -Wl,-bdynamic -lpthread -lperfstat
 endif
 
-# Alternative: Dynamic linking (uncomment to use)
-# LDFLAGS = -pthread -lperfstat
+# Alternative: Fully dynamic linking (uncomment to use)
+# LDFLAGS = -lpthread -lperfstat
 
 GIT_VERSION := $(shell git --no-pager describe --tags --always --long | sed "s/v\(.*\)-\([0-9]*\)-.*/\1.\2/")
 
