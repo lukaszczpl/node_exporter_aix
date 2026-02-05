@@ -57,32 +57,31 @@ static int request_handler(struct mg_connection *conn, void *cbdata) {
 
   std::string s = output.str();
 
-  // Use chunked transfer encoding for large responses
-  mg_printf(conn, "HTTP/1.1 200 OK\r\n"
-                  "Content-Type: text/plain; version=0.0.4\r\n"
-                  "Transfer-Encoding: chunked\r\n"
-                  "\r\n");
+  // Send complete response with Content-Length for Prometheus compatibility
+  mg_printf(conn,
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Type: text/plain; version=0.0.4\r\n"
+            "Content-Length: %lu\r\n"
+            "\r\n",
+            (unsigned long)s.length());
 
-  // Send data in chunks to avoid buffer limitations
-  const size_t chunk_size = 8192; // 8KB chunks
+  // Send data in chunks to avoid mg_write buffer limitations
+  // but client sees it as one complete response due to Content-Length
+  const size_t chunk_size = 65536; // 64KB chunks
   size_t offset = 0;
 
   while (offset < s.length()) {
     size_t remaining = s.length() - offset;
     size_t to_send = (remaining < chunk_size) ? remaining : chunk_size;
 
-    // Send chunk size in hex
-    mg_printf(conn, "%lx\r\n", (unsigned long)to_send);
-    // Send chunk data
-    mg_write(conn, s.c_str() + offset, to_send);
-    // Send chunk terminator
-    mg_printf(conn, "\r\n");
+    int written = mg_write(conn, s.c_str() + offset, to_send);
+    if (written <= 0) {
+      // Connection closed or error
+      break;
+    }
 
-    offset += to_send;
+    offset += written;
   }
-
-  // Send final chunk (size 0) to indicate end
-  mg_printf(conn, "0\r\n\r\n");
 
   return 200;
 }
