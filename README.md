@@ -24,15 +24,19 @@ flag | Description
 -----|-------------
 -C | Compat statistics, emulate linux node_exporter
 -c | CPU statistics
--A | disk adapter statistics
--D | disk path statistics
--M | memory page statistics
--m | memory statistics
--d | disk statistics
--i | net interface statistics
--a | net adapter statistics
--b | net buffer statistics
--p | partition statistics
+-A | Disk adapter statistics
+-D | Disk path statistics
+-M | Memory page statistics
+-m | Memory statistics
+-d | Disk statistics
+-i | Network interface statistics
+-a | Network adapter statistics
+-b | Network buffer statistics
+-P | Partition statistics
+-f | Filesystem statistics
+-v | vmstat -v statistics
+-F | Fibre Channel adapter statistics
+-L | MPIO path statistics
 
 ## Install package
     installp -ac -d <package_file.bff>
