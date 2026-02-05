@@ -56,14 +56,33 @@ static int request_handler(struct mg_connection *conn, void *cbdata) {
     gather_mpio(output, static_labels);
 
   std::string s = output.str();
-  mg_printf(conn,
-            "HTTP/1.1 200 OK\r\n"
-            "Content-Type: text/plain; version=0.0.4\r\n"
-            "Content-Length: %lu\r\n"
-            "\r\n",
-            (unsigned long)s.length());
 
-  mg_write(conn, s.c_str(), s.length());
+  // Use chunked transfer encoding for large responses
+  mg_printf(conn, "HTTP/1.1 200 OK\r\n"
+                  "Content-Type: text/plain; version=0.0.4\r\n"
+                  "Transfer-Encoding: chunked\r\n"
+                  "\r\n");
+
+  // Send data in chunks to avoid buffer limitations
+  const size_t chunk_size = 8192; // 8KB chunks
+  size_t offset = 0;
+
+  while (offset < s.length()) {
+    size_t remaining = s.length() - offset;
+    size_t to_send = (remaining < chunk_size) ? remaining : chunk_size;
+
+    // Send chunk size in hex
+    mg_printf(conn, "%lx\r\n", (unsigned long)to_send);
+    // Send chunk data
+    mg_write(conn, s.c_str() + offset, to_send);
+    // Send chunk terminator
+    mg_printf(conn, "\r\n");
+
+    offset += to_send;
+  }
+
+  // Send final chunk (size 0) to indicate end
+  mg_printf(conn, "0\r\n\r\n");
 
   return 200;
 }
