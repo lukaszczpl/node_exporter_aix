@@ -63,8 +63,8 @@ help:
 	@echo "Debug build: make DEBUG=1"
 	@echo "Custom compiler: make CXX=/path/to/g++"
 
-build/node_exporter_aix: build/server.o build/collectors.o build/main.o build/mounts.o build/vmstat_v.o build/civetweb.o
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o build/node_exporter_aix build/server.o build/collectors.o build/main.o build/mounts.o build/vmstat_v.o build/civetweb.o
+build/node_exporter_aix: build/server.o build/collectors.o build/main.o build/mounts.o build/vmstat_v.o build/mpio.o build/civetweb.o
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o build/node_exporter_aix build/server.o build/collectors.o build/main.o build/mounts.o build/vmstat_v.o build/mpio.o build/civetweb.o
 
 build/server.o: server.cpp node_exporter_aix.hpp
 	$(CXX) $(CXXFLAGS) -lperfstat -I civetweb/include -c -o build/server.o server.cpp
@@ -77,6 +77,9 @@ build/mounts.o: mounts.cpp node_exporter_aix.hpp
 
 build/vmstat_v.o: vmstat_v.cpp
 	$(CXX) $(CXXFLAGS) -lperfstat -D PROG_VERSION="\"$(GIT_VERSION)\"" -c -o build/vmstat_v.o vmstat_v.cpp
+
+build/mpio.o: mpio.cpp node_exporter_aix.hpp
+	$(CXX) $(CXXFLAGS) -c -o build/mpio.o mpio.cpp
 
 build/collectors.o: collectors.cpp generated/diskpaths.cpp generated/diskadapters.cpp generated/memory_pages.cpp generated/memory.cpp generated/cpus.cpp generated/disks.cpp generated/netinterfaces.cpp generated/netadapters.cpp generated/netbuffers.cpp generated/partition.cpp generated/fcstats.cpp node_exporter_aix.hpp
 	$(CXX) $(CXXFLAGS) -lperfstat -c -o build/collectors.o collectors.cpp

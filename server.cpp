@@ -9,7 +9,6 @@
 #include <unistd.h>
 #include <vector>
 
-
 #include "civetweb.h"
 #include "node_exporter_aix.hpp"
 
@@ -53,6 +52,8 @@ static int request_handler(struct mg_connection *conn, void *cbdata) {
     gather_vmstat_v(output, static_labels);
   if (flags & PART_FCSTAT_E)
     gather_fcstats(output, static_labels);
+  if (flags & PART_MPIO)
+    gather_mpio(output, static_labels);
 
   std::string s = output.str();
   mg_printf(conn,
