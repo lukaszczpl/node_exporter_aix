@@ -1,7 +1,6 @@
 #include <string>
 #include <vector>
 
-
 #define PART_COMPAT (1 << 0)
 #define PART_CPU (1 << 1)
 #define PART_DISKADAPTER (1 << 2)
@@ -13,10 +12,10 @@
 #define PART_NETADAPTER (1 << 8)
 #define PART_NETBUFFER (1 << 9)
 #define PART_PARTITION (1 << 10)
-#define PART_FILESYSTEMS (1 << 11)
 #define PART_VMSTAT_V (1 << 11)
 #define PART_FCSTAT_E (1 << 12)
 #define PART_MPIO (1 << 13)
+#define PART_FILESYSTEMS (1 << 14)
 
 extern int start_server(int port, int flags);
 
