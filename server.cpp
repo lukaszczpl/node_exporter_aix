@@ -57,31 +57,31 @@ static int request_handler(struct mg_connection *conn, void *cbdata) {
 
   std::string s = output.str();
 
-  // Send complete response with Content-Length for Prometheus compatibility
-  mg_printf(conn,
-            "HTTP/1.1 200 OK\r\n"
-            "Content-Type: text/plain; version=0.0.4\r\n"
-            "Content-Length: %lu\r\n"
-            "\r\n",
-            (unsigned long)s.length());
+  // Use CivetWeb's native chunked transfer encoding
+  // content_length = -1 enables Transfer-Encoding: chunked automatically
+  int result = mg_send_http_ok(conn, "text/plain; version=0.0.4", -1);
+  if (result < 0) {
+    return 500;
+  }
 
-  // Send data in chunks to avoid mg_write buffer limitations
-  // but client sees it as one complete response due to Content-Length
-  const size_t chunk_size = 65536; // 64KB chunks
+  // Send data in chunks using CivetWeb's mg_send_chunk
+  const size_t chunk_size = 8192; // 8KB chunks
   size_t offset = 0;
 
   while (offset < s.length()) {
     size_t remaining = s.length() - offset;
     size_t to_send = (remaining < chunk_size) ? remaining : chunk_size;
 
-    int written = mg_write(conn, s.c_str() + offset, to_send);
-    if (written <= 0) {
-      // Connection closed or error
+    int sent = mg_send_chunk(conn, s.c_str() + offset, (unsigned int)to_send);
+    if (sent <= 0) {
       break;
     }
 
-    offset += written;
+    offset += to_send;
   }
+
+  // Send empty chunk to indicate end of response
+  mg_send_chunk(conn, NULL, 0);
 
   return 200;
 }
