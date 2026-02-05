@@ -12,6 +12,12 @@ void output_STRUCT_NAME_stat_mode(std::ostream& response, const std::string& sta
 void gather_STRUCT_NAMEs(std::ostream& response, const std::string& static_labels) {
 	int STRUCT_NAME_count = perfstat_STRUCT_NAME(NULL, NULL, sizeof(perfstat_STRUCT_NAME_t), 0);
 
+	// Check if any devices exist before attempting to gather stats
+	if(STRUCT_NAME_count <= 0) {
+		// No devices found - skip silently (not an error condition)
+		return;
+	}
+
 	perfstat_STRUCT_NAME_t STRUCT_NAMEs[STRUCT_NAME_count];
 	perfstat_ID_STRUCT_t firstSTRUCT_NAME;
 
