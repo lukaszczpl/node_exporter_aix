@@ -74,8 +74,15 @@ int start_server(int port, int flags) {
   signal(SIGINT, signal_handler);
 
   std::string port_str = std::to_string(port);
-  const char *options[] = {"listening_ports", port_str.c_str(), "num_threads",
-                           "5", NULL};
+  const char *options[] = {"listening_ports",
+                           port_str.c_str(),
+                           "num_threads",
+                           "5",
+                           "max_request_size",
+                           "131072", // 128KB for large metric responses
+                           "request_timeout_ms",
+                           "30000", // 30 second timeout for slow metrics
+                           NULL};
 
   struct mg_callbacks callbacks;
   memset(&callbacks, 0, sizeof(callbacks));
